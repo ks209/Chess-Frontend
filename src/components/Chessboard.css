@@ -1,0 +1,6 @@
+@media (max-width: 600px) {
+    .square{
+        width: 10vw;
+        height: 10vw;
+    }
+}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Chessboard from '../components/Chessboard.jsx'
 import useSocket from '../hooks/useSocket.jsx'
 import {Chess} from 'chess.js'
+import "./Game.css"
 
 
 export const INIT_GAME = "init"
@@ -14,7 +15,9 @@ const Game = () => {
     const [chess, setChess] = useState(new Chess())
     const [board, setBoard] = useState(chess.board())
     const [isStarted, setIsStarted] = useState(false)
+    const [isWaiting, setIsWaiting] = useState(false)
     const [c,setC] = useState(null)
+    const [alert,setAlert] = useState(null)
 
     useEffect(()=>{
         if(!socket){
@@ -29,16 +32,21 @@ const Game = () => {
                     console.log("GAME INITIALIZED")
                     setIsStarted(true);
                     setC(message.payload.color)
-                    console.log(message.payload)
+                    console.log(c)
+                    setAlert(`You are ${message?.payload?.color ==="w" ? "White":"Black"}`)
                     break;
                 case MOVE:
                     chess.move(message.move)
+                    setAlert(message.move.from + " " + message.move.to )
                     setBoard(chess.board())
-                    console.log(board)
+                    if(chess.isCheck()){
+                        setAlert("Check")
+                    }
                     break;
                 case GAME_OVER:
                     console.log("Game over")
-                        break;
+                    setAlert("Game Over")
+                    break;
                 default:
                     break;
             }
@@ -46,23 +54,28 @@ const Game = () => {
     },[socket])
 
 
+    const initHandler=()=>{
+        socket.send(JSON.stringify({
+            type: INIT_GAME
+        }))
+        setIsWaiting(true)
+    }
+
+
     if(!socket) return <div>Connecting...</div>
     return (
-    <div className='justify-center flex'>
-        <div className='pt-8 w-screen'>
-            <div className='grid grid-cols-2 gap-4'>
-                <div className=' w-full flex'>
-                    <Chessboard chess={chess} board={board} socket={socket} setBoard={setBoard} c={c}/>
+    <div className='justify-center flex p-4'>
+            <div className='game-container flex gap-[10vw]'>
+                <div className='board'>
+                    <Chessboard className='chessboard' chess={chess} board={board} socket={socket} setBoard={setBoard} c={c} setAlert={setAlert}/>
                 </div>
+                <div>
                 {!isStarted && <div className='bg-blue-400 w-5 px-8 py-8 flex justify-center h-4 align-center items-center' >
-                    <button onClick={()=>{
-                        socket.send(JSON.stringify({
-                            type: INIT_GAME
-                        }))
-                    }}>PLAY</button>
+                    {isWaiting === false ? <button onClick={initHandler}>PLAY</button> : <h4>Finding...</h4>}
                 </div>}
+                {<h1 className='p-5 text-center text-zinc-300  text-xl'> {alert}</h1>}
+                </div>
             </div>
-        </div>
         </div>
   )
 }
