@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
-// const WS_URL = "wss://chess-backend-1-rxuc.onrender.com"
-const WS_URL = "ws://localhost:3000"
+const WS_URL = "wss://chess-backend-1-rxuc.onrender.com"
+// const WS_URL = "ws://localhost:3000"
 
 //ws://chess-backend-1-rxuc.onrender.com
 
